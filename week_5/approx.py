@@ -3,9 +3,10 @@ import matplotlib.pyplot as plt
 
 # --- Configurazione ---
 d = 400
-n_values = np.linspace(300, 3000, 50).astype(int)
+n_values = np.linspace(500, 3000, 50).astype(int)
 alphas = n_values / d  # n/d
-reg_list = [0.001, 0.01]
+#reg_list = [0.001, 0.01, 0.1]
+reg_list = [0]
 avg_delta_vals_list = []
 kl_id_vals_list = []
 
@@ -29,7 +30,7 @@ for lam in reg_list:
         term_det_inf = 0.5 * (np.log(1 - h_vec) + d * np.log(r))
         term_quad_inf = 0.5 * (h_vec * (n * h_vec - 1)) / (1 - h_vec)
         
-        # Media delle Delta e riscalamento per 
+        # Media delle Delta e riscalamento per d
         avg_delta = np.mean(term_det_inf + term_quad_inf) / d
         avg_delta_vals.append(avg_delta)
         
@@ -45,20 +46,22 @@ for lam in reg_list:
     kl_id_vals_list.append(kl_id_vals)
 print(len(avg_delta_vals_list), len(kl_id_vals_list))
 print(len(avg_delta_vals_list[0]), len(kl_id_vals_list[0]))
-print(len(avg_delta_vals_list[1]), len(kl_id_vals_list[1]))
+#print(len(avg_delta_vals_list[1]), len(kl_id_vals_list[1]))
 # --- Plot ---
 plt.figure(figsize=(10, 6))
+approx_function = 0.5 * (1/alphas / (1 - 1/alphas))  # Approssimazione teorica per λ=0
 
 for _ in range(len(reg_list)):
-    plt.plot(alphas, avg_delta_vals_list[_], 'o-', label=f'Influence Density (λ={reg_list[_]})', color=plt.cm.tab10(_), markersize=3)
-    plt.plot(alphas, kl_id_vals_list[_], 's--', label=f'KL Divergence (λ={reg_list[_]})', color=plt.cm.tab10(_), markersize=3)
-
+    plt.plot(alphas, avg_delta_vals_list[_], 'o-', label=f'Influence Density (λ={reg_list[_]})', markersize=3)
+    plt.plot(alphas, kl_id_vals_list[_], 's--', label=f'KL Divergence (λ={reg_list[_]})', markersize=3)
+plt.plot(alphas, approx_function, '--', color='black',
+         label=r'Approximation: ($\lambda=0$): $\frac{1}{2} \frac{\gamma}{1-\gamma}$')
 plt.yscale('log')
-plt.xlabel(r'Sample Complexity $\alpha = n/d$')
-plt.ylabel('Value / d (Log Scale)')
+plt.xlabel(r'Sample Complexity $\alpha = 1/\gamma = n/d$')
+plt.ylabel('$\Delta$ / d (Log Scale)')
 plt.title('Influence Function vs. KL Divergence to Identity')
 plt.legend()
 plt.grid(True, which="both", linestyle='--', alpha=0.4)
 
 plt.tight_layout()
-plt.savefig('asymptotic_behavior.png', dpi=300)
+plt.savefig('approximation_gamma.png', dpi=150)

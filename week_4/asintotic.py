@@ -61,4 +61,4 @@ plt.legend()
 plt.grid(True, which="both", linestyle='--', alpha=0.4)
 
 plt.tight_layout()
-plt.savefig('asymptotic_behavior.png', dpi=300)
+plt.savefig('/home/ceci/Thesis/Plots/asymptotic_behavior.png', dpi=300)

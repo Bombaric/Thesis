@@ -64,4 +64,4 @@ plt.legend()
 plt.grid(True, which="both", linestyle='--', alpha=0.4)
 
 plt.tight_layout()
-plt.savefig('approximation_gamma.png', dpi=150)
+plt.savefig('/home/ceci/Thesis/Plots/approximation_gamma.png', dpi=150)

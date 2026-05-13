@@ -56,7 +56,7 @@ axes[1].set_title(f"Bulk Distribution $S_{n-1}$ ($\gamma \\approx {gamma}$)")
 axes[1].legend()
 
 plt.tight_layout()
-plt.savefig("cauchy_interlacement_bulk.png", dpi=300)
+plt.savefig("/home/ceci/Thesis/Plots/cauchy_interlacement_bulk.png", dpi=300)
 
 # --- 3. Zooming in on Interlacement (Single Instance) ---
 # Use smaller d for visual clarity
@@ -72,4 +72,4 @@ plt.scatter(e_Sn, np.ones_like(e_Sn), color='red', marker='o', s=50, label='$\la
 plt.title("Deterministic Interlacement Snapshot (Zoomed)")
 plt.yticks([])
 plt.legend()
-plt.savefig("cauchy_interlacement.png", dpi=300)
+plt.savefig("/home/ceci/Thesis/Plots/cauchy_interlacement.png", dpi=300)

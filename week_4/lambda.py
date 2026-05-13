@@ -62,7 +62,7 @@ for i, lam in enumerate(reg_list):
     plt.close()
 
 # --- Creazione GIF ---
-with imageio.get_writer('influence_evolution.gif', mode='I', duration=0.5) as writer:
+with imageio.get_writer('/home/ceci/Thesis/Plots/influence_evolution.gif', mode='I', duration=0.5) as writer:
     for filename in filenames:
         image = imageio.imread(filename)
         writer.append_data(image)

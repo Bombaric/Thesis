@@ -1,23 +1,52 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.integrate import quad
+
+# --- Funzioni Teoriche (Marchenko-Pastur) ---
+
+def mp_density(lam, gamma):
+    if gamma == 0: return 0
+    lam_plus = (1 + np.sqrt(gamma))**2
+    lam_minus = (1 - np.sqrt(gamma))**2
+    if lam < lam_minus or lam > lam_plus:
+        return 0
+    return np.sqrt((lam_plus - lam) * (lam - lam_minus)) / (2 * np.pi * gamma * lam)
+
+def compute_spectral_values(gamma, sigma2):
+    """Calcola i valori attesi teorici basati sulla distribuzione spettrale."""
+    lam_plus = (1 + np.sqrt(gamma))**2
+    lam_minus = (1 - np.sqrt(gamma))**2
+    
+    # 1. Calcolo di I = E[ lambda / (lambda + sigma2) ]
+    I_integrand = lambda l: (l / (l + sigma2)) * mp_density(l, gamma)
+    I_val, _ = quad(I_integrand, lam_minus, lam_plus)
+    
+    # Risultati asintotici normalizzati per d (solo Influence Density)
+    spectral_delta = 0.5 * (gamma * I_val**2) / (1 - gamma * I_val)
+    
+    return spectral_delta
+
 
 # --- Configurazione ---
 d = 400
-n_values = np.linspace(300, 3000, 50).astype(int)
+n_values = np.linspace(20, 3000, 50).astype(int)
 alphas = n_values / d  # n/d
-reg_list = [0.001, 0.01]
+#reg_list = [0.0, 0.01, 0.1] # Lista di regolarizzazioni da testare
+reg_list = [0.01]
 
 avg_delta_vals_list = []
 kl_id_vals_list = []
 c_bound_vals_list = [] # Updated list for the rigorous C_gamma bound
-
+#C non rigoroso
+theory_delta = [compute_spectral_values(d/n, lam) for lam in reg_list for n in n_values]
 print("Generazione dati e calcolo dei bound rigorosi...")
 
 for lam in reg_list:
     avg_delta_vals = []
     kl_id_vals = []
     c_bound_vals = []
-    
+    c_non_rigorous_vals = []
+
     for n in n_values:
         gamma = d / n # Aspect ratio gamma
         
@@ -48,9 +77,9 @@ for lam in reg_list:
         
         # 5. Calcolo del Lower Bound Rigoroso (C_gamma * Delta/d)
         # Bordo inferiore dello spettro di Marchenko-Pastur
-        lambda_min = (1 - np.sqrt(gamma))**2 if gamma <= 1 else 0.0
-        
-        # Autovalore riscalato minimo
+        #lambda_min = (1 - np.sqrt(gamma))**2 if gamma <= 1 else 0.0
+        lambda_min = 0
+        # Autovalore riscalato minimo, diverso da zero con regolarizzazione!!
         nu_min = (lambda_min + lam) / (1 + lam)
         
         # Costante di bound C_gamma (Rigorosa)
@@ -74,20 +103,21 @@ for i, lam in enumerate(reg_list):
     color = plt.cm.tab10(i)
     
     # Plot delle curve principali
-    plt.plot(alphas, avg_delta_vals_list[i], 'o-', label=f'Influence Density $\\bar{{\\Delta}}/d$ (λ={lam})', color=color, markersize=4)
-    plt.plot(alphas, kl_id_vals_list[i], 's--', label=f'KL Divergence $\\mathcal{{D}}$ (λ={lam})', color=color, markersize=4)
+    plt.plot(alphas, theory_delta[i*len(n_values):(i+1)*len(n_values)], '-', label=rf'Spectral influence $\mathcal{{I}}$ ($\sigma^2$={lam})', markersize=4)
+    plt.plot(alphas, avg_delta_vals_list[i], 'o', label=rf'Influence density $\mathcal{{I}}$ ($\sigma^2$={lam})', markersize=4)
+    plt.plot(alphas, kl_id_vals_list[i], '--', label=rf'excess KL divergence $\mathcal{{D}}$ ($\sigma^2$={lam})', markersize=4)
     
     # Plot del lower bound analitico rigoroso
-    plt.plot(alphas, c_bound_vals_list[i], '^:', label=f'Lower Bound $C_\\gamma \\frac{{\\bar{{\\Delta}}}}{{d}}$ (λ={lam})', color=color, markersize=4)
+    plt.plot(alphas, c_bound_vals_list[i], '^:', label=rf'Lower Bound $C \mathcal{{I}}$ ($\sigma^2$={lam})', markersize=4)
     
     # Shading dell'area del teorema "Sandwich"
-    plt.fill_between(alphas, c_bound_vals_list[i], avg_delta_vals_list[i], color=color, alpha=0.1)
+    #plt.fill_between(alphas, c_bound_vals_list[i], avg_delta_vals_list[i], color=color, alpha=0.1)
 
 plt.yscale('log')
 plt.xlabel(r'Sample Complexity $\alpha = n/d$')
-plt.ylabel('Value / d (Log Scale)')
-plt.title('Rigorous Sandwich Bound: KL Divergence vs. Influence Density')
-plt.legend()
+plt.ylabel('Value (Log Scale)')
+plt.title(r'Rigorous sandwich bound: $\mathcal{I}$, $\mathcal{D}$, and $C \mathcal{I}$')
+plt.legend(fontsize=12)
 plt.grid(True, which="both", linestyle='--', alpha=0.4)
 
 plt.tight_layout()
